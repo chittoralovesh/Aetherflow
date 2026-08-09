@@ -1,0 +1,25 @@
+table:
+  name: organizations
+  schema: public
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - name
+        - allowed_quota
+        - calls_used
+        - created_at
+      filter:
+        id:
+          _in:
+            - _val: "SELECT org_id FROM public.org_members WHERE user_id = X-Hasura-User-Id"
+update_permissions:
+  - role: owner
+    permission:
+      filter:
+        id:
+          _in:
+            - _val: "SELECT org_id FROM public.org_members WHERE user_id = X-Hasura-User-Id AND role = 'owner'"
+      columns:
+        - name

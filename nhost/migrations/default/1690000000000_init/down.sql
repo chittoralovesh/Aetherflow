@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS public.workflow_outputs CASCADE;
+DROP TABLE IF EXISTS public.step_runs CASCADE;
+DROP TABLE IF EXISTS public.workflow_runs CASCADE;
+DROP TABLE IF EXISTS public.workflow_triggers CASCADE;
+DROP TABLE IF EXISTS public.workflow_steps CASCADE;
+DROP TABLE IF EXISTS public.workflows CASCADE;
+DROP TABLE IF EXISTS public.org_members CASCADE;
+DROP TABLE IF EXISTS public.organizations CASCADE;
+DROP TABLE IF EXISTS auth.users CASCADE;
+DROP SCHEMA IF EXISTS auth CASCADE;

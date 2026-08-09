@@ -1,0 +1,25 @@
+version: 2
+services:
+  postgres:
+    resources:
+      limits:
+        memory: 512Mi
+  hasura:
+    adminSecret: nhost-admin-secret
+    jwtSecret:
+      type: HS256
+      key: nhost-jwt-secret
+  auth:
+    redirectionUrl: http://localhost:3000
+    signUp:
+      enabled: true
+      email:
+        enabled: true
+      anonymous:
+        enabled: false
+    totp:
+      enabled: false
+  storage:
+    enabled: true
+  functions:
+    enabled: true

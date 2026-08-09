@@ -1,0 +1,90 @@
+table:
+  name: workflow_steps
+  schema: public
+object_relationships:
+  - name: workflow
+    using:
+      foreign_key_constraint_on: workflow_id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - workflow_id
+        - name
+        - type
+        - config
+        - position
+        - created_at
+      filter:
+        workflow:
+          org_id:
+            _in:
+              - _val: "SELECT org_id FROM public.org_members WHERE user_id = X-Hasura-User-Id"
+insert_permissions:
+  - role: editor
+    permission:
+      check:
+        workflow:
+          org_id:
+            _in:
+              - _val: "SELECT org_id FROM public.org_members WHERE user_id = X-Hasura-User-Id AND role IN ('editor', 'owner')"
+      columns:
+        - workflow_id
+        - name
+        - type
+        - config
+        - position
+  - role: owner
+    permission:
+      check:
+        workflow:
+          org_id:
+            _in:
+              - _val: "SELECT org_id FROM public.org_members WHERE user_id = X-Hasura-User-Id AND role = 'owner'"
+      columns:
+        - workflow_id
+        - name
+        - type
+        - config
+        - position
+update_permissions:
+  - role: editor
+    permission:
+      filter:
+        workflow:
+          org_id:
+            _in:
+              - _val: "SELECT org_id FROM public.org_members WHERE user_id = X-Hasura-User-Id AND role IN ('editor', 'owner')"
+      columns:
+        - name
+        - type
+        - config
+        - position
+  - role: owner
+    permission:
+      filter:
+        workflow:
+          org_id:
+            _in:
+              - _val: "SELECT org_id FROM public.org_members WHERE user_id = X-Hasura-User-Id AND role = 'owner'"
+      columns:
+        - name
+        - type
+        - config
+        - position
+delete_permissions:
+  - role: editor
+    permission:
+      filter:
+        workflow:
+          org_id:
+            _in:
+              - _val: "SELECT org_id FROM public.org_members WHERE user_id = X-Hasura-User-Id AND role IN ('editor', 'owner')"
+  - role: owner
+    permission:
+      filter:
+        workflow:
+          org_id:
+            _in:
+              - _val: "SELECT org_id FROM public.org_members WHERE user_id = X-Hasura-User-Id AND role = 'owner'"
