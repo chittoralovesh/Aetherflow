@@ -7,9 +7,9 @@ const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:post
 const isVercel = !!process.env.VERCEL;
 const hasCloudDb = !!process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('localhost');
 
-// If we are on Vercel and don't have a cloud database URL configured, run in Mock Mode instantly
+// If we are on Vercel/Production and don't have a cloud database URL configured, run in Mock Mode instantly
 // to prevent connection timeout hangs that get serverless functions killed by Vercel.
-const useMockMode = isVercel && !hasCloudDb;
+const useMockMode = (isVercel || process.env.NODE_ENV === 'production') && !hasCloudDb;
 
 let pool: Pool;
 
