@@ -3,28 +3,38 @@ import crypto from 'crypto';
 
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/workflow_builder';
 
+// Detect environment
+const isVercel = !!process.env.VERCEL;
+const hasCloudDb = !!process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('localhost');
+
+// If we are on Vercel and don't have a cloud database URL configured, run in Mock Mode instantly
+// to prevent connection timeout hangs that get serverless functions killed by Vercel.
+const useMockMode = isVercel && !hasCloudDb;
+
 let pool: Pool;
 
-try {
-  if (process.env.NODE_ENV === 'production') {
-    pool = new Pool({
-      connectionString,
-      ssl: {
-        rejectUnauthorized: false
-      }
-    });
-  } else {
-    const globalRef = global as unknown as { pool: Pool };
-    if (!globalRef.pool) {
-      globalRef.pool = new Pool({
+if (!useMockMode) {
+  try {
+    if (process.env.NODE_ENV === 'production') {
+      pool = new Pool({
         connectionString,
-        ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false }
+        ssl: {
+          rejectUnauthorized: false
+        }
       });
+    } else {
+      const globalRef = global as unknown as { pool: Pool };
+      if (!globalRef.pool) {
+        globalRef.pool = new Pool({
+          connectionString,
+          ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false }
+        });
+      }
+      pool = globalRef.pool;
     }
-    pool = globalRef.pool;
+  } catch (e) {
+    console.warn("Could not initialize PostgreSQL pool, using mock mode:", e);
   }
-} catch (e) {
-  console.warn("Could not initialize PostgreSQL pool, using mock mode:", e);
 }
 
 // In-Memory Data Store (Fallback)
@@ -65,6 +75,10 @@ const inMemoryStore = {
 };
 
 export async function query(text: string, params?: any[]) {
+  if (useMockMode) {
+    return executeInMemoryQuery(text, params || []);
+  }
+
   try {
     const res = await pool.query(text, params);
     return res;
@@ -107,7 +121,6 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
 
   // 3. SELECT public.workflows
   if (normalized.includes('select') && normalized.includes('public.workflows')) {
-    // Get workflows for orgId ($1)
     const orgId = params[0];
     const wfs = inMemoryStore.workflows.filter(w => w.org_id === orgId);
     return { rows: wfs, rowCount: wfs.length };
