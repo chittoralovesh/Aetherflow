@@ -120,7 +120,7 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
   }
 
   // 3. SELECT public.workflows
-  if (normalized.includes('select') && normalized.includes('workflows') && !normalized.includes('workflow_steps') && !normalized.includes('workflow_triggers') && !normalized.includes('workflow_runs')) {
+  if (normalized.includes('select') && (normalized.includes('from workflows w') || normalized.includes('from public.workflows w'))) {
     const orgId = params[0];
     const wfs = inMemoryStore.workflows.filter(w => w.org_id === orgId);
     return { rows: wfs, rowCount: wfs.length };
