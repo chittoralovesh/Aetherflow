@@ -93,7 +93,7 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
   const normalized = sql.replace(/\s+/g, ' ').trim().toLowerCase();
 
   // 1. SELECT public.organizations
-  if (normalized.includes('select') && normalized.includes('public.organizations')) {
+  if (normalized.includes('select') && normalized.includes('organizations')) {
     const userId = params[0];
     const orgIds = inMemoryStore.org_members
       .filter(m => m.user_id === userId)
@@ -120,14 +120,14 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
   }
 
   // 3. SELECT public.workflows
-  if (normalized.includes('select') && normalized.includes('public.workflows')) {
+  if (normalized.includes('select') && normalized.includes('workflows') && !normalized.includes('workflow_steps') && !normalized.includes('workflow_triggers') && !normalized.includes('workflow_runs')) {
     const orgId = params[0];
     const wfs = inMemoryStore.workflows.filter(w => w.org_id === orgId);
     return { rows: wfs, rowCount: wfs.length };
   }
 
   // 4. SELECT public.workflow_steps
-  if (normalized.includes('select') && normalized.includes('public.workflow_steps')) {
+  if (normalized.includes('select') && normalized.includes('workflow_steps') && !normalized.includes('left join step_runs')) {
     const wfId = params[0];
     const steps = inMemoryStore.workflow_steps
       .filter(s => s.workflow_id === wfId)
@@ -136,7 +136,7 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
   }
 
   // 5. SELECT public.workflow_triggers
-  if (normalized.includes('select') && normalized.includes('public.workflow_triggers')) {
+  if (normalized.includes('select') && normalized.includes('workflow_triggers')) {
     const wfId = params[0];
     const triggers = inMemoryStore.workflow_triggers.filter(t => t.workflow_id === wfId);
     return { rows: triggers, rowCount: triggers.length };
@@ -200,7 +200,7 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
   }
 
   // 10. INSERT public.workflows
-  if (normalized.includes('insert into public.workflows')) {
+  if (normalized.includes('insert into workflows') || normalized.includes('insert into public.workflows')) {
     const name = params[0];
     const orgId = params[1];
     const id = crypto.randomUUID();
@@ -210,7 +210,7 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
   }
 
   // 11. INSERT public.workflow_steps
-  if (normalized.includes('insert into public.workflow_steps')) {
+  if (normalized.includes('insert into workflow_steps') || normalized.includes('insert into public.workflow_steps')) {
     const workflowId = params[0];
     const name = params[1];
     const type = params[2];
@@ -223,14 +223,14 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
   }
 
   // 12. DELETE public.workflow_steps
-  if (normalized.includes('delete from public.workflow_steps')) {
+  if (normalized.includes('delete from workflow_steps') || normalized.includes('delete from public.workflow_steps')) {
     const wfId = params[0];
     inMemoryStore.workflow_steps = inMemoryStore.workflow_steps.filter(s => s.workflow_id !== wfId);
     return { rows: [], rowCount: 0 };
   }
 
   // 13. INSERT public.workflow_triggers
-  if (normalized.includes('insert into public.workflow_triggers')) {
+  if (normalized.includes('insert into workflow_triggers') || normalized.includes('insert into public.workflow_triggers')) {
     const workflowId = params[0];
     const type = params[1];
     const config = typeof params[2] === 'string' ? JSON.parse(params[2]) : params[2];
@@ -241,7 +241,7 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
   }
 
   // 14. DELETE public.workflow_triggers
-  if (normalized.includes('delete from public.workflow_triggers')) {
+  if (normalized.includes('delete from workflow_triggers') || normalized.includes('delete from public.workflow_triggers')) {
     const wfId = params[0];
     inMemoryStore.workflow_triggers = inMemoryStore.workflow_triggers.filter(t => t.workflow_id !== wfId);
     return { rows: [], rowCount: 0 };
@@ -371,7 +371,7 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
   }
 
   // 23. INSERT workflow_outputs
-  if (normalized.includes('insert into public.workflow_outputs')) {
+  if (normalized.includes('insert into workflow_outputs') || normalized.includes('insert into public.workflow_outputs')) {
     const runId = params[0];
     const stepId = params[1];
     const data = typeof params[2] === 'string' ? JSON.parse(params[2]) : params[2];
