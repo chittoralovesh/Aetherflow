@@ -535,6 +535,16 @@ export default function Home() {
 
   // Hybrid Client-side Execution Simulator for stateless Vercel deployments
   const runLocalSimulation = async (runId: string) => {
+    // Ensure the run is visible in Execution History immediately
+    setRunsHistory(prev => {
+      const match = prev.find(r => r.id === runId);
+      if (match) {
+        return prev.map(r => r.id === runId ? { ...r, status: 'running' } : r);
+      } else {
+        return [{ id: runId, status: 'running', started_at: new Date().toISOString(), trigger_type: 'manual' }, ...prev];
+      }
+    });
+
     const stepsCopy = workflowSteps.map(ws => {
       let configObj = {};
       try {
@@ -597,6 +607,7 @@ export default function Home() {
         } catch (e) {}
         step.input = { roleRequired: roleVal };
         setRunState(prev => prev ? { ...prev, runStatus: 'paused', steps: [...stepsCopy] } : null);
+        setRunsHistory(prev => prev.map(r => r.id === runId ? { ...r, status: 'paused' } : r));
         // Pause execution and wait for user approval
         return;
       } else if (step.step_type === 'db_write') {
@@ -626,6 +637,7 @@ export default function Home() {
     }
 
     setRunState(prev => prev ? { ...prev, runStatus: 'completed', completedAt: new Date().toISOString() } : null);
+    setRunsHistory(prev => prev.map(r => r.id === runId ? { ...r, status: 'completed' } : r));
     
     // Increment monthly calls used
     if (activeOrg) {
@@ -648,6 +660,7 @@ export default function Home() {
     stepsCopy[pausedIndex].output = { approved: true, approvedBy: currentUser.email };
     
     setRunState(prev => prev ? { ...prev, runStatus: 'running', steps: stepsCopy } : null);
+    setRunsHistory(prev => prev.map(r => r.id === (activeRunId || '') ? { ...r, status: 'running' } : r));
 
     // Continue executing remaining steps
     for (let i = pausedIndex + 1; i < stepsCopy.length; i++) {
@@ -685,6 +698,7 @@ export default function Home() {
     }
 
     setRunState(prev => prev ? { ...prev, runStatus: 'completed', completedAt: new Date().toISOString() } : null);
+    setRunsHistory(prev => prev.map(r => r.id === (activeRunId || '') ? { ...r, status: 'completed' } : r));
     
     // Increment monthly calls used
     if (activeOrg) {
