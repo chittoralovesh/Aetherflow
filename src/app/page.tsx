@@ -259,7 +259,18 @@ export default function Home() {
         showMsg(data.errors[0].message, "error");
       } else if (data.data && data.data.workflows) {
         setWorkflows(data.data.workflows);
-        if (data.data.workflows.length > 0) {
+        const currentActive = selectedWorkflow ? data.data.workflows.find((w: any) => w.id === selectedWorkflow.id) : null;
+        if (currentActive) {
+          setSelectedWorkflow(currentActive);
+          setWorkflowName(currentActive.name);
+          setWorkflowSteps(
+            currentActive.steps.map((s: any) => ({
+              ...s,
+              config: typeof s.config === "string" ? s.config : JSON.stringify(s.config)
+            }))
+          );
+          setWorkflowTriggers(currentActive.triggers);
+        } else if (data.data.workflows.length > 0) {
           selectWorkflow(data.data.workflows[0]);
         } else {
           loadBlueprint(BLUEPRINTS[0]);
