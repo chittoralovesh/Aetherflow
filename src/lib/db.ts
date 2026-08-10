@@ -119,11 +119,25 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
     };
   }
 
-  // 3. SELECT public.workflows
-  if (normalized.includes('select') && (normalized.includes('from workflows w') || normalized.includes('from public.workflows w'))) {
+  // 3. SELECT public.workflows (list)
+  if (normalized.includes('select') && (normalized.includes('from workflows w') || normalized.includes('from public.workflows w')) && !normalized.includes('join org_members')) {
     const orgId = params[0];
     const wfs = inMemoryStore.workflows.filter(w => w.org_id === orgId);
     return { rows: wfs, rowCount: wfs.length };
+  }
+
+  // 3b. SELECT public.workflows (access check)
+  if (normalized.includes('workflows w') && normalized.includes('join org_members') && normalized.includes('w.id = $1')) {
+    const wfId = params[0];
+    const userId = params[1];
+    const wf = inMemoryStore.workflows.find(w => w.id === wfId);
+    if (!wf) return { rows: [], rowCount: 0 };
+    const mem = inMemoryStore.org_members.find(m => m.org_id === wf.org_id && m.user_id === userId);
+    if (!mem) return { rows: [], rowCount: 0 };
+    return {
+      rows: [{ org_id: wf.org_id, role: mem.role }],
+      rowCount: 1
+    };
   }
 
   // 4. SELECT public.workflow_steps
