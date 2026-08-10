@@ -619,7 +619,7 @@ export default function Home() {
     // Increment monthly calls used
     if (activeOrg) {
       setActiveOrg(prev => prev ? { ...prev, calls_used: Math.min(prev.allowed_quota, prev.calls_used + 1) } : null);
-      setOrgs(prevList => prevList.map(o => o.id === activeOrg.id ? { ...o, calls_used: Math.min(o.allowed_quota, o.calls_used + 1) } : o));
+      setOrganizations(prevList => prevList.map(o => o.id === activeOrg.id ? { ...o, calls_used: Math.min(o.allowed_quota, o.calls_used + 1) } : o));
     }
   };
 
@@ -678,7 +678,7 @@ export default function Home() {
     // Increment monthly calls used
     if (activeOrg) {
       setActiveOrg(prev => prev ? { ...prev, calls_used: Math.min(prev.allowed_quota, prev.calls_used + 1) } : null);
-      setOrgs(prevList => prevList.map(o => o.id === activeOrg.id ? { ...o, calls_used: Math.min(o.allowed_quota, o.calls_used + 1) } : o));
+      setOrganizations(prevList => prevList.map(o => o.id === activeOrg.id ? { ...o, calls_used: Math.min(o.allowed_quota, o.calls_used + 1) } : o));
     }
   };
 
