@@ -274,17 +274,15 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
   // 15. INSERT workflow_runs
   if (normalized.includes('insert into workflow_runs')) {
     const workflowId = params[0];
-    const status = params[1];
-    const triggerType = params[2];
-    const createdBy = params[3];
+    const createdBy = params[1];
     const id = crypto.randomUUID();
     const newRun = {
       id,
       workflow_id: workflowId,
-      status,
+      status: 'running',
       started_at: new Date().toISOString(),
       completed_at: null,
-      trigger_type: triggerType,
+      trigger_type: 'manual',
       created_by: createdBy
     };
     inMemoryStore.workflow_runs.push(newRun);
@@ -295,14 +293,14 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
   if (normalized.includes('insert into step_runs')) {
     const runId = params[0];
     const stepId = params[1];
-    const status = params[2];
-    const input = typeof params[3] === 'string' ? JSON.parse(params[3]) : params[3];
+    const inputVal = params[2];
+    const input = typeof inputVal === 'string' ? JSON.parse(inputVal) : inputVal;
     const id = crypto.randomUUID();
     const newSR = {
       id,
       workflow_run_id: runId,
       step_id: stepId,
-      status,
+      status: 'running',
       input,
       output: null,
       error: null,
@@ -344,14 +342,25 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
   }
 
   // 19. UPDATE step_runs state (paused/running)
-  if (normalized.includes('update step_runs') && normalized.includes('status = $1') && normalized.includes('input = $2')) {
-    const status = params[0];
-    const input = typeof params[1] === 'string' ? JSON.parse(params[1]) : params[1];
-    const id = params[2];
+  if (normalized.includes('update step_runs') && normalized.includes("status = 'paused'") && normalized.includes('input = $1')) {
+    const inputVal = params[0];
+    const id = params[1];
     const sr = inMemoryStore.step_runs.find(s => s.id === id);
     if (sr) {
-      sr.status = status;
-      sr.input = input;
+      sr.status = 'paused';
+      sr.input = typeof inputVal === 'string' ? JSON.parse(inputVal) : inputVal;
+    }
+    return { rows: [], rowCount: sr ? 1 : 0 };
+  }
+
+  // 19b. UPDATE step_runs state (retry / running update)
+  if (normalized.includes('update step_runs') && normalized.includes("status = 'running'") && normalized.includes('attempt_count = $1')) {
+    const attemptCount = params[0];
+    const id = params[1];
+    const sr = inMemoryStore.step_runs.find(s => s.id === id);
+    if (sr) {
+      sr.status = 'running';
+      sr.attempt_count = attemptCount;
     }
     return { rows: [], rowCount: sr ? 1 : 0 };
   }
