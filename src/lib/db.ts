@@ -92,8 +92,8 @@ export async function query(text: string, params?: any[]) {
 function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCount: number } {
   const normalized = sql.replace(/\s+/g, ' ').trim().toLowerCase();
 
-  // 1. SELECT public.organizations
-  if (normalized.includes('select') && normalized.includes('organizations')) {
+  // 1. SELECT public.organizations (list)
+  if (normalized.includes('select') && normalized.includes('organizations') && normalized.includes('org_members')) {
     const userId = params[0];
     const orgIds = inMemoryStore.org_members
       .filter(m => m.user_id === userId)
@@ -105,6 +105,16 @@ function executeInMemoryQuery(sql: string, params: any[]): { rows: any[]; rowCou
         return { ...o, role: mem?.role };
       }),
       rowCount: orgs.length
+    };
+  }
+
+  // 1b. SELECT public.organizations (by ID / quota check)
+  if (normalized.includes('select') && normalized.includes('organizations') && !normalized.includes('org_members')) {
+    const orgId = params[0];
+    const org = inMemoryStore.organizations.find(o => o.id === orgId);
+    return {
+      rows: org ? [org] : [],
+      rowCount: org ? 1 : 0
     };
   }
 
