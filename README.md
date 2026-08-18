@@ -13,12 +13,6 @@
   <a href="#-local-setup"><img src="https://img.shields.io/badge/Setup%20Guide-0F0C29?style=for-the-badge&logo=readthedocs&logoColor=white" /></a>
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/github/stars/chittoralovesh/Aetherflow?style=flat-square&color=E8397D&label=Stars" />
-  <img src="https://img.shields.io/github/forks/chittoralovesh/Aetherflow?style=flat-square&color=302B63&label=Forks" />
-  <img src="https://img.shields.io/github/last-commit/chittoralovesh/Aetherflow?style=flat-square&color=0F0C29&label=Last%20Commit" />
-  <img src="https://img.shields.io/badge/status-active-brightgreen?style=flat-square" />
-</p>
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0F0C29,50:302B63,100:E8397D&height=3&width=1000" width="100%"/>
 
